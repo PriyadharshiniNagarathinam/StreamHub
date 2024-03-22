@@ -1,16 +1,15 @@
 import React, { useState } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import showdown from "showdown";
+import { Button } from "../../components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogTrigger
 } from "../../components/ui/dialog";
-import { Button } from "../../components/ui/button";
-import showdown from "showdown";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 

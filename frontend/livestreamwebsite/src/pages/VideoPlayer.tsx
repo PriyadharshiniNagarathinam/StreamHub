@@ -1,6 +1,6 @@
 import React from "react";
-import { useSearchParams } from "react-router-dom";
 import ReactPlayer from "react-player";
+import { useSearchParams } from "react-router-dom";
 
 const VideoPlayer: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();

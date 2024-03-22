@@ -1,94 +1,60 @@
-import React, { useRef, useEffect } from "react";
-import { Button } from "../../components/ui/button";
-import { io } from "socket.io-client";
 import Peer from "peerjs";
+import React, { useRef } from "react";
+import { io } from "socket.io-client";
 
 const StreamLive: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
-  const peerConnections: { [viewerId: string]: RTCPeerConnection } = {};
-  const connectedViewers: { [viewerId: string]: string } = {};
 
-  useEffect(() => {
-    startRecording();
-    return () => {
-      stopRecording();
-    };
-  }, []);
+  const liveID = new URLSearchParams(window.location.search).get("id");
+  const username = new URLSearchParams(window.location.search).get("name");
+  const roomURL = window.location.origin + "/home?id=" + liveID;
 
-  const startRecording = async () => {
-    const broadcastID = new URLSearchParams(window.location.search).get("id");
-    const username = new URLSearchParams(window.location.search).get("name");
-    const roomURL = window.location.origin + "/home?id=" + broadcastID;
+  console.log("Broadcaster", {
+    username: username,
+    roomId: liveID,
+    viewer: roomURL,
+  });
 
-    console.log("Broadcaster", {
-      username: username,
-      roomId: broadcastID,
-      viewer: roomURL,
+  const socket = io("http://localhost:3001");
+  const peerClient = new Peer();
+
+  socket.on("connect", () => {
+    console.log(socket.id);
+    // socket.emit("broadcaster", broadcastID);
+    socket.emit("create-room", liveID);
+    console.log("Connected as a streamer");
+  });
+
+  peerClient.on("open", (streamerId) => {
+    console.log("Streamer ID:", streamerId);
+    socket.emit("join-as-streamer", streamerId);
+  });
+
+  
+  const getMediaStream = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true,
     });
-
-    const socket = io("http://localhost:3001");
-    // const peer = new Peer();
-
-    socket.on("connect", () => {
-      console.log(socket.id);
-      socket.emit("broadcaster", broadcastID);
-      console.log("Connected as a streamer");
-    });
-
-    // peer.on("open", (id) => {
-    //   console.log("Streamer ID: ", id);
-    // });
-
-    // socket.on("viewer-connected", (viewerId) => {
-    //   console.log("Viewer connected: ", viewerId);
-    //   peer.call(viewerId, mediaStreamRef.current!);
-    // });
-
-    // ! -> non-null assertion operator
-    socket.on("viewer", (viewerId, iceServers, username) => {
-      console.log(
-        "a new view is joined the stream",
-        viewerId,
-        iceServers,
-        username
-      );
-      const newPeerConn = new RTCPeerConnection(iceServers);
-      peerConnections[viewerId] = newPeerConn;
-      addViewer(viewerId, username);
-      mediaStreamRef.current!.getTracks().forEach((track) => {
-        newPeerConn.addTrack(track, mediaStreamRef.current!);
-      });
-    });
-
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
-      mediaStreamRef.current = mediaStream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
-    } catch (error) {
-      console.error("Error accessing media devices:", error);
+    mediaStreamRef.current = stream;
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream;
     }
   };
 
-  const stopRecording = () => {
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach((track) => track.stop());
-      mediaStreamRef.current = null;
-    }
+  getMediaStream();
+  
+  socket.on("viewer-connected", (viewerId) => {
+    console.log("Viewer connected", viewerId);
+    connectToNewViewer(viewerId, mediaStreamRef.current as MediaStream);
+  });
+
+  const connectToNewViewer = (viewerId: string, stream: MediaStream) => {
+    console.log("peer call is enabled");
+    peerClient.call(viewerId, stream);
   };
 
-  const addViewer = (id: string, username: string) => {
-    connectedViewers[id] = username;
-    console.log("ConnectedViewers", {
-      connected: username,
-      connectedViewers: connectedViewers,
-    });
-  };
   return (
     <div>
       <video ref={videoRef} autoPlay muted />

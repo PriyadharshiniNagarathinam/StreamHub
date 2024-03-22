@@ -1,16 +1,16 @@
 import React, { useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-} from "../../components/ui/card";
+import { useNavigate } from "react-router-dom";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "../../components/ui/avatar";
 import { Button } from "../../components/ui/button";
-import { useNavigate } from "react-router-dom";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+} from "../../components/ui/card";
 
 interface VideoCardProps {
   key: string;

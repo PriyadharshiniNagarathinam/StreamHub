@@ -1,6 +1,6 @@
 import { cn } from "../../lib/utils";
 import { Button, buttonVariants } from "../../components/ui/button";
-import { UserAuthForm } from "../reactComponents/user-auth-comp";
+import { UserAuthForm } from "../reactComponents/UserAuthForm";
 import RegisterComp from "../reactComponents/RegisterComp";
 import loginImg from "../assets/images/loginPageImage.jpg";
 

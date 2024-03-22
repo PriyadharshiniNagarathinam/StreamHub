@@ -1,69 +1,66 @@
-const socketIo = require('socket.io');
+require('dotenv').config();
+const io = require('socket.io');
 const http = require('http');
 const app = require('./app');
 
-const broadcasters = {};
-const viewers = {};
+let rooms = {};
+let viewerCount = 0;
 const port = 3001;
 
 const httpServer = http.createServer(app); // Create a server instance and use that to create a socket connection
 // ensure that this http server is running in the port mentioned
 
-
-//iceServers
-const iceServers = [];
-stunServerUrl = "stun:stun.l.google.com:19302";
-iceServers.push({ urls: stunServerUrl });
-
-//Socket io Connection
-const io = socketIo(httpServer, {
+const ioServer = new io.Server(httpServer, {
     cors: {
-        origin: "*",
-        methods: "[GET, POST]"
-    }
+        origin: '*',
+    },
 });
 
-io.on('connection', (socket) => {
-    console.log('a user connected');
+//Socket io Connection
+ioServer.on('connection', (socket) => {
+    viewerCount++;
 
-    socket.on('broadcaster', (broadcastID) => {
-        handleBroadcaster(socket, broadcastID);
+    //gives the count of the number of connected clients
+    console.log(ioServer.engine.clientsCount);
+    console.log('a user connected. Total viewer count:', viewerCount);
+    // socket.emit('viewer-count', viewerCount);
+
+    socket.on('create-room', (roomName) => {
+        rooms[roomName] = [];
+        socket.join(roomName);
+        console.log(rooms);
     });
 
-    socket.on('viewer', (roomId, username) => {
-        handleViewer(socket, roomId, username);
+    socket.on('join-room', (roomName, userId) => {
+        if (rooms[roomName]) {
+            rooms[roomName].push(userId);
+            socket.join(roomName);
+            console.log(rooms);
+        }
+        else {
+            console.log('Room does not exist');
+        }
     });
 
-    socket.on('disconnect', () => {
-        console.log('user disconnected');
+    //io.sockets.emit will send to all the clients
+
+    // socket.broadcast.emit will send the message to all the other clients except the newly created connection
+    socket.on('join-as-streamer', (streamerId) => {
+        socket.broadcast.emit('streamer-joined', streamerId);
     });
-})
 
-function handleBroadcaster(socket, broadcastID) {
-    if (!(broadcastID in broadcasters)) broadcasters[broadcastID] = {};
-    broadcasters[broadcastID] = socket.id;
-    sendToBroadcasterViewers(socket, broadcastID, 'broadcaster');
-}
+    socket.on('disconnect-as-streamer', (streamerId) => {
+        socket.broadcast.emit('streamer-disconnected', streamerId);
+    });
 
-function handleViewer(socket, roomId, username) {
-    if (!(socket.id in viewers)) viewers[socket.id] = {};
-    viewers[socket.id]['roomId'] = roomId;
-    viewers[socket.id]['username'] = username;
+    socket.on('get-stream', ({ roomName, viewerId }) => {
+        console.log("get stream is running");
+        console.log(roomName);
+        socket.to(roomName).emit('viewer-connected', viewerId);
+    });
 
-    console.log("Viewers");
-    console.log(viewers);
-    console.log(roomId);
-    console.log(broadcasters);
-    console.log(broadcasters[roomId]);
-    socket.to(broadcasters[roomId]).emit('viewer', socket.id, iceServers, username);
-}
+});
 
-function sendToBroadcasterViewers(socket, broadcastID, message) {
-    // From Broadcaster socket emit to all viewers connected to a specified broadcaster.id
-    for (let id in viewers) {
-        if (viewers[id]['broadcastID'] == broadcastID) socket.to(id).emit(message);
-    }
-}
 
 httpServer.listen(port, () => {
     console.log(`http://localhost:3001/`);

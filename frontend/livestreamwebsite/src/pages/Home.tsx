@@ -9,20 +9,23 @@ import {
   TabsList,
   TabsTrigger,
 } from "../../components/ui/tabs";
+import GoLiveComp from "../reactComponents/GoLiveComp";
 import { Menu } from "../reactComponents/Menu";
-import { PodcastEmptyPlaceholder } from "../reactComponents/podcast-empty-placeholder";
-import { Sidebar } from "../reactComponents/sidebar";
+import { Sidebar } from "../reactComponents/Sidebar";
 import { recommendedVideos, videoData, watchNowVideos } from "../data/videos";
 import { playlists } from "../data/playlists";
-import VideoCard from "../reactComponents/videoCard";
-import { Route, Routes, useLocation } from "react-router-dom";
+import VideoCard from "../reactComponents/VideoCard";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { BrowserRouter as Router } from "react-router-dom";
 import VideoPlayer from "./VideoPlayer";
 import TextEditor from "../reactComponents/TextEditorComp";
-import UploadVideoForm from "../reactComponents/uploadVideoForm";
+import UploadVideoForm from "../reactComponents/UploadVideoForm";
+import { useAuth } from "../utils/AuthContext";
+import LiveVideosComp from "../reactComponents/LiveVideosComp";
 
 export default function Home() {
   // const location = useLocation();
+  const navigate = useNavigate();
   return (
     <>
       <div className="md:hidden">
@@ -67,18 +70,28 @@ export default function Home() {
                                   Videos
                                 </TabsTrigger>
                                 <TabsTrigger value="blogs">Blogs</TabsTrigger>
-                                <TabsTrigger value="live" disabled>
-                                  Live
-                                </TabsTrigger>
+                                <TabsTrigger value="live">Live</TabsTrigger>
                               </TabsList>
                               <div className="ml-auto mr-4">
                                 <Button className="mr-2">
                                   <PlusCircle className="mr-2 h-4 w-4" />
                                   <TextEditor />
                                 </Button>
-                                <Button>
+                                <Button className="mr-2">
                                   <PlusCircle className="mr-2 h-4 w-4" />
                                   <UploadVideoForm />
+                                </Button>
+                                <Button className="mr-2">
+                                  <GoLiveComp />
+                                </Button>
+                                <Button
+                                  onClick={() => {
+                                    navigate(
+                                      `/watch-live?liveId=thanks&name=priya`
+                                    );
+                                  }}
+                                >
+                                  Watch Live
                                 </Button>
                               </div>
                             </div>
@@ -105,9 +118,15 @@ export default function Home() {
                                       <VideoCard
                                         key={video._id}
                                         id={video._id}
-                                        title={video.title || "A technology boom"}
-                                        username={video.username || "Ethan Byte"}
-                                        thumbnail_filename={video.thumbnail_filename}
+                                        title={
+                                          video.title || "A technology boom"
+                                        }
+                                        username={
+                                          video.username || "Ethan Byte"
+                                        }
+                                        thumbnail_filename={
+                                          video.thumbnail_filename
+                                        }
                                       />
                                     ))}
                                   </div>
@@ -153,8 +172,12 @@ export default function Home() {
                                   </p>
                                 </div>
                               </div>
-                              <Separator className="my-4" />
-                              <PodcastEmptyPlaceholder />
+                            </TabsContent>
+                            <TabsContent
+                              value="live"
+                              className="h-full flex-col border-none p-0 data-[state=active]:flex"
+                            >
+                              <LiveVideosComp/>
                             </TabsContent>
                           </Tabs>
                         </div>

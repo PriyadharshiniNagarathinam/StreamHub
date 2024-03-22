@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import io from 'socket.io-client'
+import Peer from 'peerjs';
 
 const WatchLive = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -13,7 +14,7 @@ const WatchLive = () => {
   });
 
   const startWatching = () => {
-    const roomID = new URLSearchParams(window.location.search).get("id");
+    const roomID = new URLSearchParams(window.location.search).get("liveId");
     const username = new URLSearchParams(window.location.search).get("name");
 
     console.log("Viewer", {
@@ -22,37 +23,35 @@ const WatchLive = () => {
     });
 
     const socket = io("http://localhost:3001");
-    const viewerPeer = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
 
     socket.on("connect", () => {
-      socket.emit("viewer", roomID, username);
-      console.log("Connected as a viewer");
+      socket.emit("join-room", roomID, socket.id);
+      console.log("Connected as viewer in room " + roomID);
     });
 
-    viewerPeer.addEventListener("track", async (event) => {
-      console.log("track event", event);
-      const [remoteStream] = event.streams;
-      addVideoStream(remoteStream);
+    // Create a new Peer object
+    const myPeer = new Peer();
+
+    // Event handler for when the Peer connection is open
+    myPeer.on("open", (viewerId) => {
+      console.log("Viewer ID:", viewerId);
+      socket.emit("get-stream", { roomName:roomID, viewerId : viewerId });
     });
 
-    // peer.on("open", (id) => {
-    //   console.log("Viewer ID: ", id);
-    // });
-
-    // peer.on("call", (call) => {
-    //   call.answer();
-    //   console.log("Answering call");
-    //   call.on("stream", (stream) => {
-    //     addVideoStream(stream);
-    //   });
-    // });
+    myPeer.on("call", (call) => {
+      call.answer();
+      console.log("Answering call");
+      call.on("stream", (stream) => {
+        addVideoStream(stream);
+      });
+    });
 
     const addVideoStream = (mediaStream: MediaStream) => {
       mediaStreamRef.current = mediaStream;
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
       }
-    }
+    };
   }
   
   const stopWatching = () => {
