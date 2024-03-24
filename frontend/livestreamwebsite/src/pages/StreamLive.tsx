@@ -1,6 +1,7 @@
 import Peer from "peerjs";
 import React, { useRef } from "react";
 import { io } from "socket.io-client";
+import { Button } from "../../components/ui/button";
 // import { useLiveVideos } from "../utils/LiveVideosContext";
 
 const StreamLive: React.FC = () => {
@@ -56,11 +57,22 @@ const StreamLive: React.FC = () => {
     peerClient.call(viewerId, stream);
   };
 
+  const endLive = () => {
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      mediaStreamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    
+    socket.emit("end-live", liveID);
+  };
+
   return (
     <div>
       <video ref={videoRef} autoPlay muted />
-      {/* <Button onClick={startRecording}>Go Live</Button>
-            <Button onClick={stopRecording}>Stop</Button> */}
+      <Button style={{margin:"20px"}} onClick={endLive}>End Live</Button> 
     </div>
   );
 };

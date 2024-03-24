@@ -29,6 +29,11 @@ const WatchLive = () => {
       console.log("Connected as viewer in room " + roomID);
     });
 
+    socket.on("end-live", () => {
+      alert("The broadcaster has ended the live stream");
+      stopWatching();
+    });
+
     // Create a new Peer object
     const myPeer = new Peer();
 
@@ -64,7 +69,6 @@ const WatchLive = () => {
   return (
     <div>
       <h1>SweatStream.com</h1>
-
       <main>
         <section className="video-section">
           <video id="videoplayer" ref={videoRef} autoPlay muted></video>

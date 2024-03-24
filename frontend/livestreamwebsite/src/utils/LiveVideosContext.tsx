@@ -10,6 +10,15 @@ export const LiveVideosContext = createContext(
       broadcaster: string;
       title: string;
       description: string;
+      viewers: number;
+      ended: boolean;
+    }) => void;
+    updateLiveVideo: (liveVideo: {
+      broadcaster: string;
+      title: string;
+      description: string;
+      viewers: number;
+      ended: boolean;
     }) => void;
   }
 );
@@ -43,7 +52,16 @@ export const LiveVideosProvider = ({
       fetchLiveVideos();
     };
 
+    const roomClosedListener = (title: string) => {
+      setLiveVideos((prevLiveVideos) =>
+        prevLiveVideos.map((liveVideo) =>
+          liveVideo.title === title ? { ...liveVideo, ended: true } : liveVideo
+        )
+      );
+    }
+
     socket.on("room-created", roomCreatedListener);
+    socket.on("room-closed", roomClosedListener);
 
     return () => {
       socket.off("room-created", roomCreatedListener);
@@ -55,11 +73,10 @@ export const LiveVideosProvider = ({
     broadcaster: string;
     title: string;
     description: string;
+    viewers: number;
+    ended: boolean;
   }) => {
-    // console.log(liveVideo);
-    // setLiveVideos([...liveVideos, liveVideo]);
-    // console.log("Live Videos", liveVideos);
-    const {title, broadcaster, description} = liveVideo;
+    const { title, broadcaster, description, viewers, ended } = liveVideo;
     const res = fetch("http://localhost:3001/live-videos", {
       method: "POST",
       headers: {
@@ -69,6 +86,31 @@ export const LiveVideosProvider = ({
         title: title,
         broadcaster: broadcaster,
         description,
+        viewers,
+        ended,
+      }),
+    });
+  };
+
+  const updateLiveVideo = (liveVideo: {
+    broadcaster: string;
+    title: string;
+    description: string;
+    viewers: number;
+    ended: boolean;
+  }) => {
+    const { title, broadcaster, description, viewers, ended } = liveVideo;
+    const res = fetch(`http://localhost:3001/live-videos/${title}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: title,
+        broadcaster: broadcaster,
+        description,
+        viewers,
+        ended,
       }),
     });
   };

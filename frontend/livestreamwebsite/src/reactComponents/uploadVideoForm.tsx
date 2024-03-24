@@ -11,9 +11,16 @@ import {
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { useAuth } from "../utils/AuthContext";
+import { VideosContext } from "../utils/VideosContext";
+import { useContext } from "react";
+import {io} from "socket.io-client";
 
 const UploadVideoForm: React.FC = () => {
   const { username } = useAuth();
+  const { addVideo } = useContext(VideosContext);
+
+  const socket = io("http://localhost:3001");
+
   const handleUpload = async () => {
     const videoFile = document.getElementById("video") as HTMLInputElement;
     const thumbnailFile = document.getElementById(
@@ -41,7 +48,8 @@ const UploadVideoForm: React.FC = () => {
 
         if (response.ok) {
           console.log("Success");
-          alert("Video uploaded successfully")
+          alert("Video uploaded successfully");
+          socket.emit('videoUploaded');
         } else {
           console.log("Error");
           alert("Error uploading video");

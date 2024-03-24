@@ -24,7 +24,7 @@ const GoLiveComp: React.FC = () => {
   
   const goLive = () => {
     console.log("clicked");
-    addLiveVideo({ broadcaster: username, title: liveName, description: liveDesc });
+    addLiveVideo({ broadcaster: username, title: liveName, description: liveDesc, viewers: 0, ended: false });
     navigate(`/stream-live?name=${username}&id=${liveName}`);
   }
 

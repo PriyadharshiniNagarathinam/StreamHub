@@ -1,5 +1,6 @@
 import { PlusCircle } from "lucide-react";
 
+import { Route, Routes, useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { Separator } from "../../components/ui/separator";
@@ -9,23 +10,25 @@ import {
   TabsList,
   TabsTrigger,
 } from "../../components/ui/tabs";
+import { playlists } from "../data/playlists";
+// import { videoData } from "../data/videos";
 import GoLiveComp from "../reactComponents/GoLiveComp";
+import LiveVideosComp from "../reactComponents/LiveVideosComp";
 import { Menu } from "../reactComponents/Menu";
 import { Sidebar } from "../reactComponents/Sidebar";
-import { recommendedVideos, videoData, watchNowVideos } from "../data/videos";
-import { playlists } from "../data/playlists";
-import VideoCard from "../reactComponents/VideoCard";
-import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
-import { BrowserRouter as Router } from "react-router-dom";
-import VideoPlayer from "./VideoPlayer";
 import TextEditor from "../reactComponents/TextEditorComp";
 import UploadVideoForm from "../reactComponents/UploadVideoForm";
-import { useAuth } from "../utils/AuthContext";
-import LiveVideosComp from "../reactComponents/LiveVideosComp";
+import VideoCard from "../reactComponents/VideoCard";
+import VideoPlayer from "./VideoPlayer";
+import { VideosContext } from "../utils/VideosContext";
+import { useCallback, useContext } from "react";
 
 export default function Home() {
   // const location = useLocation();
   const navigate = useNavigate();
+  const videoData = useContext(VideosContext).videosData;
+  const addVideo = useContext(VideosContext).addVideo;
+
   return (
     <>
       <div className="md:hidden">
@@ -83,15 +86,6 @@ export default function Home() {
                                 </Button>
                                 <Button className="mr-2">
                                   <GoLiveComp />
-                                </Button>
-                                <Button
-                                  onClick={() => {
-                                    navigate(
-                                      `/watch-live?liveId=thanks&name=priya`
-                                    );
-                                  }}
-                                >
-                                  Watch Live
                                 </Button>
                               </div>
                             </div>
