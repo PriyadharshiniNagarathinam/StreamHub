@@ -13,6 +13,7 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { useAuth } from "../utils/AuthContext";
 import { LiveVideosContext } from "../utils/LiveVideosContext";
+import { io } from "socket.io-client";
 
 const GoLiveComp: React.FC = () => {
   const [liveName, setLiveName] = useState<string>("");
@@ -20,8 +21,9 @@ const GoLiveComp: React.FC = () => {
   const navigate = useNavigate();
   const { username } = useAuth();
   const addLiveVideo = useContext(LiveVideosContext).addLiveVideo;
-
+  
   const goLive = () => {
+    console.log("clicked");
     addLiveVideo({ broadcaster: username, title: liveName, description: liveDesc });
     navigate(`/stream-live?name=${username}&id=${liveName}`);
   }
@@ -52,7 +54,7 @@ const GoLiveComp: React.FC = () => {
             onChange={(e) => setLiveDesc(e.target.value)}
           ></Input>
         </DialogDescription>
-      <Button onClick={goLive}>Go Live</Button>
+      <Button onClick={()=>goLive()}>Go Live</Button>
       </DialogContent>
     </Dialog>
   );

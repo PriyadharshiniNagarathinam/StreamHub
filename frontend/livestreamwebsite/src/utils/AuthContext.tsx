@@ -3,17 +3,21 @@ import React, { createContext, useState, useContext } from "react";
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [token, setToken] = useState<boolean | null>(null);
-  const [username, setUserName] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
+  const [username, setUserName] = useState<string | null>(localStorage.getItem("username"));
 
-  const login = (token: boolean, username: string) => {
+  const login = (token: string, username: string) => {
     setToken(token);
     setUserName(username);
+    localStorage.setItem("token", token);
+    localStorage.setItem("username", username);
   };
 
   const logout = () => {
     console.log("Logging out");
-    setToken(null);
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    setToken("");
     setUserName("");
   };
 

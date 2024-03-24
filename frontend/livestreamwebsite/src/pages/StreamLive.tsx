@@ -1,19 +1,22 @@
 import Peer from "peerjs";
 import React, { useRef } from "react";
 import { io } from "socket.io-client";
+// import { useLiveVideos } from "../utils/LiveVideosContext";
 
 const StreamLive: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
-
+  // const { liveVideos } = useLiveVideos();
   const liveID = new URLSearchParams(window.location.search).get("id");
   const username = new URLSearchParams(window.location.search).get("name");
-  const roomURL = window.location.origin + "/home?id=" + liveID;
+  // const description = liveVideos.find(
+  //   (video) => video.title === liveID && video.broadcaster === username
+  // )?.description;
 
   console.log("Broadcaster", {
     username: username,
     roomId: liveID,
-    viewer: roomURL,
+    // description: description,
   });
 
   const socket = io("http://localhost:3001");
@@ -21,17 +24,15 @@ const StreamLive: React.FC = () => {
 
   socket.on("connect", () => {
     console.log(socket.id);
-    // socket.emit("broadcaster", broadcastID);
-    socket.emit("create-room", liveID);
+    socket.emit("create-room",liveID);
     console.log("Connected as a streamer");
   });
 
   peerClient.on("open", (streamerId) => {
     console.log("Streamer ID:", streamerId);
-    socket.emit("join-as-streamer", streamerId);
+    // socket.emit("join-as-streamer", streamerId);
   });
 
-  
   const getMediaStream = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: true,
@@ -44,7 +45,7 @@ const StreamLive: React.FC = () => {
   };
 
   getMediaStream();
-  
+
   socket.on("viewer-connected", (viewerId) => {
     console.log("Viewer connected", viewerId);
     connectToNewViewer(viewerId, mediaStreamRef.current as MediaStream);

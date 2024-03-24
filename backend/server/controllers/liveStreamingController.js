@@ -1,6 +1,5 @@
 const client = require("../db/connect");
 const collectionName = "liveVideos";
-
 const db = client.db("StreamHub");
 
 async function getAllLiveVideos(req, res) {
@@ -17,7 +16,7 @@ async function uploadLiveVideo(req, res) {
         viewers: [],
     };
     const result = await db.collection(collectionName).insertOne(liveVideo);
-    res.json(result.ops[0]);
+    res.status(200).json({ message: "Live video uploaded successfully" });
 }
 
 module.exports = {

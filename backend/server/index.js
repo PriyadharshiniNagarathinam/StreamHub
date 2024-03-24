@@ -2,6 +2,8 @@ require('dotenv').config();
 const io = require('socket.io');
 const http = require('http');
 const app = require('./app');
+const collection = require('./db/connect').db('StreamHub').collection('liveVideos');
+
 
 let rooms = {};
 let viewerCount = 0;
@@ -9,6 +11,10 @@ const port = 3001;
 
 const httpServer = http.createServer(app); // Create a server instance and use that to create a socket connection
 // ensure that this http server is running in the port mentioned
+
+httpServer.listen(port, () => {
+    console.log(`http://localhost:3001/`);
+});
 
 const ioServer = new io.Server(httpServer, {
     cors: {
@@ -23,12 +29,13 @@ ioServer.on('connection', (socket) => {
     //gives the count of the number of connected clients
     console.log(ioServer.engine.clientsCount);
     console.log('a user connected. Total viewer count:', viewerCount);
-    // socket.emit('viewer-count', viewerCount);
 
-    socket.on('create-room', (roomName) => {
+    socket.on('create-room', (liveID) => {
+        roomName = liveID;
         rooms[roomName] = [];
         socket.join(roomName);
         console.log(rooms);
+        ioServer.emit('room-created');
     });
 
     socket.on('join-room', (roomName, userId) => {
@@ -45,13 +52,13 @@ ioServer.on('connection', (socket) => {
     //io.sockets.emit will send to all the clients
 
     // socket.broadcast.emit will send the message to all the other clients except the newly created connection
-    socket.on('join-as-streamer', (streamerId) => {
-        socket.broadcast.emit('streamer-joined', streamerId);
-    });
+    // socket.on('join-as-streamer', (streamerId) => {
+    //     socket.broadcast.emit('streamer-joined', streamerId);
+    // });
 
-    socket.on('disconnect-as-streamer', (streamerId) => {
-        socket.broadcast.emit('streamer-disconnected', streamerId);
-    });
+    // socket.on('disconnect-as-streamer', (streamerId) => {
+    //     socket.broadcast.emit('streamer-disconnected', streamerId);
+    // });
 
     socket.on('get-stream', ({ roomName, viewerId }) => {
         console.log("get stream is running");
@@ -61,7 +68,3 @@ ioServer.on('connection', (socket) => {
 
 });
 
-
-httpServer.listen(port, () => {
-    console.log(`http://localhost:3001/`);
-});
